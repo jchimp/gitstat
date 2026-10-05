@@ -10,8 +10,7 @@ from pathlib import Path
 from gitstat import __version__
 from gitstat.analyze import Report, build_report
 from gitstat.collect import collect, filter_authors
-from gitstat.export_csv import write_csv
-from gitstat.export_html import write_html
+from gitstat.export import DEFAULT_OUT, export_all
 from gitstat.source import GitError, configured_email, resolve
 
 
@@ -33,8 +32,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                    help="max minutes between commits in one work session (default: 120)")
     p.add_argument("--first-commit", type=int, default=120, metavar="MIN",
                    help="minutes credited before each session's first commit (default: 120)")
-    p.add_argument("--html", type=Path, metavar="FILE", help="write the HTML dashboard here")
-    p.add_argument("--csv", type=Path, metavar="DIR", help="write CSV files into this directory")
+    p.add_argument("--out", type=Path, default=DEFAULT_OUT, metavar="DIR",
+                   help="reports folder; files go in DIR/<repo>/ (default: reports)")
+    p.add_argument("--export", action="store_true",
+                   help="write report.html and CSV files without pressing e in the TUI")
     p.add_argument("--no-tui", action="store_true", help="print a summary instead of the TUI")
     p.add_argument("--no-fetch", action="store_true",
                    help="for URLs, use the cached clone without fetching")
@@ -99,11 +100,9 @@ def main(argv: list[str] | None = None) -> int:
                           args.session_gap, args.first_commit)
 
     try:
-        if args.html:
-            print(f"Wrote {write_html(report, args.html)}")
-        if args.csv:
-            for path in write_csv(report, args.csv):
-                print(f"Wrote {path}")
+        if args.export:
+            written = export_all(report, args.out)
+            print(f"Wrote {len(written)} files to {written[0].parent}")
     except OSError as exc:
         print(f"gitstat: export failed: {exc}", file=sys.stderr)
         return 1
@@ -116,8 +115,7 @@ def main(argv: list[str] | None = None) -> int:
 
     GitStatApp(
         report,
-        html_path=args.html or Path(f"gitstat-{repo.name}.html"),
-        csv_dir=args.csv or Path(f"gitstat-{repo.name}-csv"),
+        out_root=args.out,
     ).run()
     return 0
 
