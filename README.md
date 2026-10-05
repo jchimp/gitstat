@@ -31,6 +31,9 @@ sortable tables. It follows your light or dark theme.
 
 **CSV files** (commits, months, files, sessions) for spreadsheets or your own scripts.
 
+Press `e` in the dashboard, or pass `--export`, and gitstat saves all of these to
+`reports/<repo>/`.
+
 ## Install
 
 You need **Python 3.12+** and **git** on your PATH.
@@ -63,8 +66,9 @@ gitstat --author alice --author bob@      # match parts of names or emails
 gitstat --since 2026-01-01                # limit the date range
 gitstat --since "3 months ago" --until "1 week ago"
 
-# No dashboard: print a summary and write the reports
-gitstat --no-tui --html report.html --csv report-csv
+# No dashboard: print a summary and write the reports to reports/<repo>/
+gitstat --no-tui --export
+gitstat --no-tui --export --out ~/gitstat-reports
 ```
 
 Example `--no-tui` output:
@@ -91,8 +95,24 @@ myproject  (me@example.com)
 | `e` | Export the HTML report and CSV files |
 | `q` | Quit |
 
-If you do not give `--html` or `--csv`, `e` writes `gitstat-<repo>.html` and
-`gitstat-<repo>-csv/` in the current folder.
+## Where reports go
+
+All exports go into one folder, `reports/` by default, with a subfolder for each repo:
+
+```
+reports/
+  my-project/
+    report.html     # the interactive dashboard
+    commits.csv     # one row per commit
+    monthly.csv     # one row per month
+    files.csv       # one row per file
+    sessions.csv    # one row per work session
+  other-repo/
+    ...
+```
+
+`reports/` is relative to the folder you run gitstat from. Use `--out DIR` to pick a
+different folder. Exporting again replaces the files for that repo.
 
 ## All options
 
@@ -104,8 +124,8 @@ If you do not give `--html` or `--csv`, `e` writes `gitstat-<repo>.html` and
 | `--since DATE`, `--until DATE` | all time | Any date git understands |
 | `--session-gap MIN` | `120` | Max minutes between commits in one work session |
 | `--first-commit MIN` | `120` | Minutes credited for work before a session's first commit |
-| `--html FILE` | – | Write the HTML report |
-| `--csv DIR` | – | Write CSV files |
+| `--export` | off | Write the HTML report and CSV files when gitstat starts |
+| `--out DIR` | `reports` | Folder for exports. Files go in `DIR/<repo>/` |
 | `--no-tui` | off | Print a summary instead of opening the dashboard |
 | `--no-fetch` | off | For URLs: use the cached copy without updating it |
 
