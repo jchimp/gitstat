@@ -1,9 +1,10 @@
+docs/private/
+*.local.md
+
 .venv/
 __pycache__/
 *.pyc
 .pytest_cache/
 dist/
 .env
-# default export outputs
-gitstat-*.html
-gitstat-*-csv/
+reports/
