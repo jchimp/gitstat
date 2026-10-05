@@ -110,11 +110,19 @@ def test_html_escapes_subjects(repo: Path) -> None:
 
 def test_cli_default_uses_git_user_email(repo: Path, tmp_path: Path,
                                         capsys: pytest.CaptureFixture[str]) -> None:
-    out = tmp_path / "r.html"
-    assert main([str(repo), "--no-tui", "--html", str(out), "--csv", str(tmp_path / "c")]) == 0
+    out = tmp_path / "reports"
+    assert main([str(repo), "--no-tui", "--export", "--out", str(out)]) == 0
     text = capsys.readouterr().out
     assert "commits       4" in text  # only me@example.com, from repo config
-    assert out.exists()
+    assert sorted(p.name for p in (out / "proj").iterdir()) == [
+        "commits.csv", "files.csv", "monthly.csv", "report.html", "sessions.csv"]
+
+
+def test_cli_without_export_writes_nothing(repo: Path, tmp_path: Path,
+                                           monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.chdir(tmp_path)
+    assert main([str(repo), "--no-tui"]) == 0
+    assert not (tmp_path / "reports").exists()
 
 
 def test_cli_all_authors(repo: Path, capsys: pytest.CaptureFixture[str]) -> None:
