@@ -15,8 +15,7 @@ from textual.widgets import DataTable, Footer, Header, Static, TabbedContent, Ta
 
 from gitstat.analyze import FileStat, Report
 from gitstat.collect import Commit
-from gitstat.export_csv import write_csv
-from gitstat.export_html import write_html
+from gitstat.export import export_all
 from gitstat.tui import render
 
 # One glyph per milestone kind keeps the Mark column narrow; the legend is in the footer hint.
@@ -81,11 +80,10 @@ class GitStatApp(App[None]):
         Binding("5", "tab('timeline-pane')", "Timeline", show=False, priority=True),
     ]
 
-    def __init__(self, report: Report, html_path: Path, csv_dir: Path) -> None:
+    def __init__(self, report: Report, out_root: Path) -> None:
         super().__init__()
         self.report = report
-        self.html_path = html_path
-        self.csv_dir = csv_dir
+        self.out_root = out_root
         self.milestones_only = False
         self._by_hash = {c.hash: c for c in report.commits}
         self._milestone_kinds: dict[str, list[str]] = {}
@@ -288,9 +286,8 @@ class GitStatApp(App[None]):
 
     def action_export(self) -> None:
         try:
-            html = write_html(self.report, self.html_path)
-            csvs = write_csv(self.report, self.csv_dir)
+            written = export_all(self.report, self.out_root)
         except OSError as exc:
             self.notify(f"Export failed: {exc}", severity="error", timeout=10)
             return
-        self.notify(f"Wrote {html}\nand {len(csvs)} CSV files to {self.csv_dir}", timeout=8)
+        self.notify(f"Wrote {len(written)} files to {written[0].parent}", timeout=8)
