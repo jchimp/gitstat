@@ -1,10 +1,12 @@
 docs/private/
 *.local.md
 
+reports/
+
 .venv/
 __pycache__/
 *.pyc
 .pytest_cache/
 dist/
 .env
-reports/
+
